@@ -3,7 +3,7 @@ const PREF_KEY = "finora-preferences-v1";
 const GOAL_KEY = "finora-goals-v1";
 
 // Java HttpServer backend connected to MySQL
-const API_URL = "http://localhost:8080/api";
+const API_URL = "https://your-backend.onrender.com/api";
 let transactionsCache = [];
 
 async function loadTransactionsFromAPI() {
