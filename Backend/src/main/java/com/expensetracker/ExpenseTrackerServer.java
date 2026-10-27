@@ -1,4 +1,3 @@
-
 package com.expensetracker;
 
 import com.google.gson.Gson;
@@ -17,13 +16,22 @@ import java.util.List;
 
 public class ExpenseTrackerServer {
 
-    private static final int PORT = 8080;
-    private static final String DB_URL =
-            "jdbc:mysql://localhost:3306/ExpenseTracker?serverTimezone=UTC";
+   private static final int PORT =
+        Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
 
-    private static final String DB_USER = "root";
-    private static final String DB_PASSWORD =
-            System.getenv().getOrDefault("EXPENSETRACKER_DB_PASSWORD", "");
+private static final String DB_URL = String.format(
+        "jdbc:mysql://%s:%s/%s?serverTimezone=UTC",
+        System.getenv().getOrDefault("MYSQLHOST", "localhost"),
+        System.getenv().getOrDefault("MYSQLPORT", "3306"),
+        System.getenv().getOrDefault("MYSQLDATABASE", "ExpenseTracker")
+);
+
+private static final String DB_USER =
+        System.getenv().getOrDefault("MYSQLUSER", "root");
+
+private static final String DB_PASSWORD =
+        System.getenv().getOrDefault("MYSQLPASSWORD",
+                System.getenv().getOrDefault("EXPENSETRACKER_DB_PASSWORD", ""));
 
     private static final Gson gson = new Gson();
 
@@ -33,8 +41,8 @@ public class ExpenseTrackerServer {
             System.out.println("MySQL connection successful!");
         }
 
-        HttpServer server = HttpServer.create(
-                new InetSocketAddress(PORT), 0);
+       HttpServer server = HttpServer.create(
+        new InetSocketAddress("0.0.0.0", PORT), 0);
 
         server.createContext("/api/health", exchange -> {
             addCorsHeaders(exchange);
@@ -414,4 +422,3 @@ public class ExpenseTrackerServer {
         String notes = "";
     }
 }
-
