@@ -1,0 +1,22 @@
+# Java / Maven
+target/
+*.class
+
+# Secrets
+.env
+*.env
+application-local.properties
+
+# Python
+.venv/
+__pycache__/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+
+# Logs
+*.log

@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Tracker | Transactions</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body data-page="transactions">
+<header class="topbar">
+  <a class="brand" href="index.html"><span class="brand-icon">E</span><span>Expense Tracker<span class="purple"></span><small>PERSONAL FINANCE</small></span></a>
+  <nav><a href="index.html">Dashboard</a><a class="active" href="transactions.html">Transactions</a><a href="reports.html">Reports</a></nav>
+  <div class="top-actions"><button class="icon-btn" id="themeToggle" title="Toggle dark mode">◐</button>
+</header>
+
+<main class="container">
+  <section class="page-banner"><span class="eyebrow">EVERY RUPEE HAS A STORY</span><h1>Transactions<span class="purple">.</span></h1><p>Keep your income and spending organized, searchable, and up to date.</p></section>
+
+  <section class="stats-grid">
+    <article class="stat-card"><div class="stat-top"><span>Transactions</span><span class="stat-icon violet">≡</span></div><h3 id="txCount">0</h3><p>Records in your ledger</p></article>
+    <article class="stat-card"><div class="stat-top"><span>Total income</span><span class="stat-icon green">↗</span></div><h3 id="txIncome">₹0.00</h3><p>Recorded inflows</p></article>
+    <article class="stat-card"><div class="stat-top"><span>Total expenses</span><span class="stat-icon red">↘</span></div><h3 id="txExpenses">₹0.00</h3><p>Recorded outflows</p></article>
+    <article class="stat-card"><div class="stat-top"><span>Net balance</span><span class="stat-icon orange">◈</span></div><h3 id="txBalance">₹0.00</h3><p>Income minus expenses</p></article>
+  </section>
+
+  <section class="panel">
+    <div class="panel-heading"><div><h3>All transactions</h3><p>Search, filter, edit, or export your records.</p></div>
+      <div class="actions"><button class="btn outline-btn" id="exportCsv">↓ Export CSV</button><button class="btn primary-btn" id="addTransactionBtn">＋ Add transaction</button></div>
+    </div>
+    <div class="filters">
+      <input id="searchInput" type="search" placeholder="Search description, notes, category...">
+      <select id="typeFilter"><option value="all">All types</option><option value="income">Income</option><option value="expense">Expense</option></select>
+      <select id="categoryFilter"><option value="all">All categories</option><option>Salary</option><option>Freelance</option><option>Investment</option><option>Food</option><option>Transport</option><option>Shopping</option><option>Bills</option><option>Education</option><option>Health</option><option>Entertainment</option><option>Other</option></select>
+      <label>From <input id="fromDate" type="date"></label>
+      <label>To <input id="toDate" type="date"></label>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Description</th><th>Category</th><th>Date</th><th>Type</th><th>Amount</th><th>Actions</th></tr></thead><tbody id="transactionRows"></tbody></table></div>
+    <div class="table-footer"><span id="resultCount">0 records</span><button id="clearFilters" class="text-link button-link">Clear filters</button></div>
+  </section>
+
+  <section class="tip-banner"><strong>✦ A small habit, a big difference.</strong><p>Update transactions regularly to keep your reports meaningful.</p></section>
+  <footer>Expense Tracker © 2026 <span>Built for better money habits.</span></footer>
+</main>
+
+<dialog id="transactionDialog" class="modal">
+  <form id="transactionForm">
+    <div class="modal-heading"><div><h2 id="transactionModalTitle">Add transaction</h2><p>Fill in the details below.</p></div><button type="button" class="icon-btn" data-close="transactionDialog">×</button></div>
+    <input type="hidden" name="id">
+    <label>Description<input name="description" required maxlength="80" placeholder="e.g. Monthly salary"></label>
+    <div class="form-row">
+      <label>Amount (₹)<input name="amount" type="number" min="0.01" step="0.01" required></label>
+      <label>Type<select name="type" id="formType"><option value="expense">Expense</option><option value="income">Income</option></select></label>
+    </div>
+    <div class="form-row">
+      <label>Category<select name="category" id="formCategory" required></select></label>
+      <label>Date<input name="date" id="formDate" type="date" required></label>
+    </div>
+    <label>Notes (optional)<textarea name="notes" rows="3" maxlength="200" placeholder="Add details..."></textarea></label>
+    <label class="check-label"><input name="recurring" type="checkbox"> Mark as recurring (reminder only)</label>
+    <div class="actions end"><button class="btn outline-btn" type="button" data-close="transactionDialog">Cancel</button><button class="btn primary-btn">Save transaction</button></div>
+  </form>
+</dialog>
+<div id="toast" class="toast"></div>
+</body>
+</html>

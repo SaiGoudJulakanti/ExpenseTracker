@@ -1,0 +1,59 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Tracker | Reports</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js" defer></script>
+</head>
+<body data-page="reports">
+<header class="topbar">
+  <a class="brand" href="index.html"><span class="brand-icon">E</span><span>Expense Tracker<span class="purple"></span><small>PERSONAL FINANCE</small></span></a>
+  <nav><a href="index.html">Dashboard</a><a href="transactions.html">Transactions</a><a class="active" href="reports.html">Reports</a></nav>
+  <div class="top-actions"><button class="icon-btn" id="themeToggle" title="Toggle dark mode">◐</button>
+</header>
+
+<main class="container">
+  <section class="page-banner"><span class="eyebrow">INSIGHTS THAT MOVE YOU FORWARD</span><h1>Financial reports<span class="purple">.</span></h1><p>Understand your spending patterns and make confident decisions with your money.</p></section>
+
+  <section class="panel report-controls">
+    <div><h3>Report period</h3><p>Choose the date range for your summary.</p></div>
+    <div class="period-controls">
+      <select id="reportPeriod">
+        <option value="month">This month</option><option value="lastMonth">Last month</option>
+        <option value="3months">Last 3 months</option><option value="6months">Last 6 months</option>
+        <option value="year">This year</option><option value="all">All time</option>
+        <option value="custom">Custom range</option>
+      </select>
+      <input id="reportFrom" type="date" aria-label="Start date" hidden>
+      <input id="reportTo" type="date" aria-label="End date" hidden>
+      <button class="btn primary-btn" id="applyReport">Apply</button>
+      <button class="btn outline-btn" id="printReport">Print</button>
+    </div>
+  </section>
+
+  <section class="stats-grid">
+    <article class="stat-card"><div class="stat-top"><span>Income</span><span class="stat-icon green">↗</span></div><h3 id="reportIncome">₹0.00</h3><p>For selected period</p></article>
+    <article class="stat-card"><div class="stat-top"><span>Expenses</span><span class="stat-icon red">↘</span></div><h3 id="reportExpenses">₹0.00</h3><p>For selected period</p></article>
+    <article class="stat-card"><div class="stat-top"><span>Net savings</span><span class="stat-icon violet">◈</span></div><h3 id="reportNet">₹0.00</h3><p>Income minus expenses</p></article>
+    <article class="stat-card"><div class="stat-top"><span>Savings rate</span><span class="stat-icon orange">％</span></div><h3 id="savingsRate">0%</h3><p>Net savings divided by income</p></article>
+  </section>
+
+  <section class="two-column">
+    <article class="panel"><div class="panel-heading"><div><h3>Income & expenses</h3><p>Monthly cash flow</p></div></div><div class="chart-box"><canvas id="reportCashflow"></canvas></div></article>
+    <article class="panel"><div class="panel-heading"><div><h3>Spending categories</h3><p>How your expenses are distributed</p></div></div><div class="donut-box"><canvas id="reportDonut"></canvas></div><div id="reportLegend" class="legend"></div></article>
+  </section>
+
+  <section class="panel">
+    <div class="panel-heading"><div><h3>Monthly breakdown</h3><p>Income, expenses, and net savings by month.</p></div><button class="btn outline-btn" id="reportCsv">↓ Export CSV</button></div>
+    <div class="table-wrap"><table><thead><tr><th>Month</th><th>Income</th><th>Expenses</th><th>Net savings</th><th>Savings rate</th></tr></thead><tbody id="monthlyRows"></tbody></table></div>
+  </section>
+  <section class="tip-banner"><strong>✦ Your report is only as accurate as your records.</strong><p>Add transactions regularly to identify useful trends.</p></section>
+  <footer>Expense Tracker © 2026 <span>Built for better money habits.</span></footer>
+</main>
+<div id="toast" class="toast"></div>
+</body>
+</html>

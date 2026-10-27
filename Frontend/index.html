@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Tracker | Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js" defer></script>
+</head>
+<body data-page="dashboard">
+<header class="topbar">
+  <a class="brand" href="index.html"><span class="brand-icon">E</span><span>Expense Tracker<span class="purple"></span><small>PERSONAL FINANCE</small></span></a>
+  <nav>
+    <a class="active" href="index.html">Dashboard</a>
+    <a href="transactions.html">Transactions</a>
+    <a href="reports.html">Reports</a>
+  </nav>
+  <div class="top-actions"><button class="icon-btn" id="themeToggle" title="Toggle dark mode">◐</button>
+</header>
+
+<main class="container">
+  <section class="hero">
+    <div class="hero-content">
+      <span class="eyebrow">YOUR MONEY, IN FOCUS</span>
+      <h1>Make every rupee<br><em>count.</em></h1>
+      <p>Track your spending, build better habits, and move toward your financial goals.</p>
+      <div class="actions">
+        <a class="btn white-btn" href="transactions.html">＋ Add transaction</a>
+        <a class="hero-link" href="reports.html">Explore reports ↗</a>
+      </div>
+    </div>
+    <div class="hero-card">
+      <span>AVAILABLE BALANCE</span>
+      <h2 id="heroBalance">₹0.00</h2>
+      <div class="card-bottom"><span>Finora account</span><span>•••• 2048</span></div>
+    </div>
+  </section>
+
+  <section class="section-heading">
+    <div><span class="eyebrow">AT A GLANCE</span><h2>Your overview</h2><p>Here is how your finances are looking.</p></div>
+    <span class="date-pill" id="todayLabel"></span>
+  </section>
+
+  <section class="stats-grid">
+    <article class="stat-card"><div class="stat-top"><span>Net balance</span><span class="stat-icon violet">◈</span></div><h3 id="balance">₹0.00</h3><p>Total income less expenses</p></article>
+    <article class="stat-card"><div class="stat-top"><span>Total income</span><span class="stat-icon green">↗</span></div><h3 id="income">₹0.00</h3><p>Money coming in</p></article>
+    <article class="stat-card"><div class="stat-top"><span>Total expenses</span><span class="stat-icon red">↘</span></div><h3 id="expenses">₹0.00</h3><p>Money going out</p></article>
+    <article class="stat-card"><div class="stat-top"><span>This month</span><span class="stat-icon orange">▦</span></div><h3 id="monthExpense">₹0.00</h3><p>Current month's expenses</p></article>
+  </section>
+
+  <section class="two-column">
+    <article class="panel">
+      <div class="panel-heading"><div><h3>Cash flow</h3><p>Income versus expenses over six months</p></div><span class="pill">6 months</span></div>
+      <div class="chart-box"><canvas id="cashflowChart"></canvas></div>
+    </article>
+    <article class="panel">
+      <div class="panel-heading"><div><h3>Spending breakdown</h3><p>Where your money goes</p></div><a class="text-link" href="reports.html">Details ↗</a></div>
+      <div class="donut-box"><canvas id="spendingChart"></canvas></div>
+      <div class="legend" id="spendingLegend"></div>
+    </article>
+  </section>
+
+  <section class="two-column">
+    <article class="panel">
+      <div class="panel-heading"><div><h3>Recent transactions</h3><p>Your latest money moves</p></div><a class="text-link" href="transactions.html">View all ↗</a></div>
+      <div class="table-wrap"><table><thead><tr><th>Description</th><th>Date</th><th>Amount</th></tr></thead><tbody id="recentRows"></tbody></table></div>
+    </article>
+    <article class="panel">
+      <div class="panel-heading"><div><h3>Savings goals</h3><p>Little steps add up</p></div><button class="text-link button-link" id="newGoalBtn">＋ Add goal</button></div>
+      <div id="goalList"></div>
+      <p class="hint">✦ Consistency beats perfection. Keep going!</p>
+    </article>
+  </section>
+
+  <section class="panel budget-panel">
+    <div class="panel-heading"><div><h3>Monthly budget</h3><p>Keep your spending on track</p></div><button class="btn outline-btn" id="editBudgetBtn">Edit budget</button></div>
+    <div class="budget-numbers"><div><span>Spent this month</span><strong id="budgetSpent">₹0.00</strong></div><div class="align-right"><span>Monthly limit</span><strong id="budgetLimit">₹15,000.00</strong></div></div>
+    <div class="progress"><div id="budgetProgress"></div></div>
+    <div class="budget-footer"><span id="budgetMessage"></span><strong id="budgetPercent">0%</strong></div>
+  </section>
+  <footer>Expense Tracker © 2026 <span>Built for better money habits.</span></footer>
+</main>
+
+<dialog id="budgetDialog" class="modal">
+  <form id="budgetForm">
+    <div class="modal-heading"><h2>Set monthly budget</h2><button type="button" class="icon-btn" data-close="budgetDialog">×</button></div>
+    <label>Monthly expense limit (₹)<input name="budget" type="number" min="1" step="0.01" required></label>
+    <button class="btn primary-btn full-width">Save budget</button>
+  </form>
+</dialog>
+
+<dialog id="goalDialog" class="modal">
+  <form id="goalForm">
+    <div class="modal-heading"><h2>Create savings goal</h2><button type="button" class="icon-btn" data-close="goalDialog">×</button></div>
+    <label>Goal name<input name="name" maxlength="50" required placeholder="e.g. New laptop"></label>
+    <div class="form-row">
+      <label>Target amount (₹)<input name="target" type="number" min="1" required></label>
+      <label>Already saved (₹)<input name="saved" type="number" min="0" value="0" required></label>
+    </div>
+    <button class="btn primary-btn full-width">Save goal</button>
+  </form>
+</dialog>
+<div id="toast" class="toast"></div>
+</body>
+</html>
