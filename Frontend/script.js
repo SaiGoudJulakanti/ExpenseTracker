@@ -1,7 +1,6 @@
 const TX_KEY = "finora-transactions-v1";
 const PREF_KEY = "finora-preferences-v1";
 const GOAL_KEY = "finora-goals-v1";
-
 // Java HttpServer backend connected to MySQL
 const API_URL = "http://localhost:8080/api";
 let transactionsCache = [];
@@ -17,14 +16,15 @@ async function loadTransactionsFromAPI() {
 
   transactionsCache = data.map(t => ({
     id: String(t.id),
-    description: t.title,
+    description: t.title ?? t.description ?? "",
     amount: Number(t.amount),
     type: String(t.type).toLowerCase(),
-    category: t.category,
-    date: t.transactionDate,
+    category: t.category || "Other",
+    date: t.transactionDate ?? t.transaction_date ?? t.date ?? "",
     notes: t.notes || "",
     recurring: false,
-    paymentMethod: t.paymentMethod || "Other"
+    paymentMethod:
+      t.paymentMethod ?? t.payment_method ?? "Other"
   }));
 
   return transactionsCache;
@@ -33,11 +33,11 @@ async function loadTransactionsFromAPI() {
 function apiTransactionData(record) {
   return {
     title: record.description,
-    amount: String(record.amount),
+    amount: Number(record.amount),
     type: record.type.toUpperCase(),
     category: record.category,
     transactionDate: record.date,
-    paymentMethod: record.paymentMethod || "Other",
+    paymentMethod: record.paymentMethod,
     notes: record.notes || ""
   };
 }
@@ -94,12 +94,10 @@ function readList(key) {
   }
 }
 
-// Transactions are loaded from MySQL through the Java API.
 function getTransactions() {
   return transactionsCache;
 }
 
-// Budget preferences remain in browser storage.
 function preferences() {
   try {
     return {
@@ -156,11 +154,7 @@ function lastMonths(items, count = 6) {
   const now = new Date();
 
   for (let i = count - 1; i >= 0; i--) {
-    const d = new Date(
-      now.getFullYear(),
-      now.getMonth() - i,
-      1
-    );
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
 
     keys.push(
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
@@ -181,9 +175,7 @@ function categoryData(items) {
     .filter(t => t.type === "expense")
     .forEach(t => {
       const category = t.category || "Other";
-
-      result[category] =
-        (result[category] || 0) + Number(t.amount);
+      result[category] = (result[category] || 0) + Number(t.amount);
     });
 
   return Object.entries(result).sort((a, b) => b[1] - a[1]);
@@ -225,24 +217,16 @@ function barChart(id, items) {
       plugins: {
         legend: {
           position: "bottom",
-          labels: {
-            usePointStyle: true,
-            boxWidth: 7
-          }
+          labels: { usePointStyle: true, boxWidth: 7 }
         }
       },
       scales: {
-        x: {
-          grid: { display: false }
-        },
+        x: { grid: { display: false } },
         y: {
           beginAtZero: true,
-          grid: {
-            color: "rgba(130,130,160,.12)"
-          },
+          grid: { color: "rgba(130,130,160,.12)" },
           ticks: {
-            callback: v =>
-              "₹" + Number(v).toLocaleString("en-IN")
+            callback: v => "₹" + Number(v).toLocaleString("en-IN")
           }
         }
       }
@@ -262,13 +246,9 @@ function donutChart(id, legendId, items) {
   charts[id] = new Chart(canvas, {
     type: "doughnut",
     data: {
-      labels: entries.length
-        ? entries.map(e => e[0])
-        : ["No expenses"],
+      labels: entries.length ? entries.map(e => e[0]) : ["No expenses"],
       datasets: [{
-        data: entries.length
-          ? entries.map(e => e[1])
-          : [1],
+        data: entries.length ? entries.map(e => e[1]) : [1],
         backgroundColor: entries.length
           ? entries.map((_, i) => COLORS[i % COLORS.length])
           : ["#e9e9f2"],
@@ -280,9 +260,7 @@ function donutChart(id, legendId, items) {
       responsive: true,
       maintainAspectRatio: false,
       cutout: "72%",
-      plugins: {
-        legend: { display: false }
-      }
+      plugins: { legend: { display: false } }
     }
   });
 
@@ -302,9 +280,7 @@ function renderRows(items, targetId, detailed = false) {
 
   if (!target) return;
 
-  const sorted = [...items].sort(
-    (a, b) => b.date.localeCompare(a.date)
-  );
+  const sorted = [...items].sort((a, b) => b.date.localeCompare(a.date));
 
   if (!sorted.length) {
     target.innerHTML = `
@@ -312,14 +288,12 @@ function renderRows(items, targetId, detailed = false) {
         <td class="empty" colspan="${detailed ? 6 : 3}">
           No transactions yet. Add your first transaction to get started.
         </td>
-      </tr>
-    `;
+      </tr>`;
     return;
   }
 
   target.innerHTML = sorted.map(t => {
-    const amount =
-      `${t.type === "income" ? "+" : "−"}${money(t.amount)}`;
+    const amount = `${t.type === "income" ? "+" : "−"}${money(t.amount)}`;
 
     if (!detailed) {
       return `
@@ -332,8 +306,7 @@ function renderRows(items, targetId, detailed = false) {
           <td class="${t.type === "income" ? "amount-income" : "amount-expense"}">
             ${amount}
           </td>
-        </tr>
-      `;
+        </tr>`;
     }
 
     return `
@@ -353,15 +326,10 @@ function renderRows(items, targetId, detailed = false) {
           ${amount}
         </td>
         <td>
-          <button class="text-link button-link" data-edit="${safeText(t.id)}">
-            Edit
-          </button>
-          <button class="text-link button-link" data-delete="${safeText(t.id)}">
-            Delete
-          </button>
+          <button class="text-link button-link" data-edit="${safeText(t.id)}">Edit</button>
+          <button class="text-link button-link" data-delete="${safeText(t.id)}">Delete</button>
         </td>
-      </tr>
-    `;
+      </tr>`;
   }).join("");
 }
 
@@ -374,11 +342,7 @@ function toast(message) {
   el.classList.add("show");
 
   clearTimeout(toast.timer);
-
-  toast.timer = setTimeout(
-    () => el.classList.remove("show"),
-    2600
-  );
+  toast.timer = setTimeout(() => el.classList.remove("show"), 2600);
 }
 
 function setupShared() {
@@ -394,25 +358,18 @@ function setupShared() {
       document.body.classList.contains("dark") ? "dark" : "light"
     );
 
-    toast(
-      document.body.classList.contains("dark")
-        ? "Dark mode enabled"
-        : "Light mode enabled"
-    );
+    toast(document.body.classList.contains("dark")
+      ? "Dark mode enabled"
+      : "Light mode enabled");
   });
 
   document.querySelectorAll("[data-close]").forEach(btn =>
-    btn.addEventListener("click", () =>
-      $(btn.dataset.close)?.close()
-    )
+    btn.addEventListener("click", () => $(btn.dataset.close)?.close())
   );
 }
 
 function monthExpenses(items) {
-  return sum(
-    items.filter(t => monthKey(t.date) === today().slice(0, 7)),
-    "expense"
-  );
+  return sum(items.filter(t => monthKey(t.date) === today().slice(0, 7)), "expense");
 }
 
 function renderBudget(items) {
@@ -420,33 +377,22 @@ function renderBudget(items) {
   const limit = Math.max(1, Number(preferences().budget) || 15000);
   const percent = spent / limit * 100;
 
-  if ($("budgetSpent")) {
-    $("budgetSpent").textContent = money(spent);
-  }
-
-  if ($("budgetLimit")) {
-    $("budgetLimit").textContent = money(limit);
-  }
+  if ($("budgetSpent")) $("budgetSpent").textContent = money(spent);
+  if ($("budgetLimit")) $("budgetLimit").textContent = money(limit);
 
   if ($("budgetProgress")) {
     $("budgetProgress").style.width = Math.min(100, percent) + "%";
-
     $("budgetProgress").style.background =
-      percent >= 100 ? "#dd5570" :
-      percent >= 80 ? "#f2aa4c" : "";
+      percent >= 100 ? "#dd5570" : percent >= 80 ? "#f2aa4c" : "";
   }
 
-  if ($("budgetPercent")) {
-    $("budgetPercent").textContent = Math.round(percent) + "%";
-  }
+  if ($("budgetPercent")) $("budgetPercent").textContent = Math.round(percent) + "%";
 
   if ($("budgetMessage")) {
     $("budgetMessage").textContent =
-      percent >= 100
-        ? `Budget exceeded by ${money(spent - limit)}.`
-        : percent >= 80
-          ? `${money(limit - spent)} remaining — you're getting close.`
-          : `${money(limit - spent)} left to spend this month.`;
+      percent >= 100 ? `Budget exceeded by ${money(spent - limit)}.` :
+      percent >= 80 ? `${money(limit - spent)} remaining — you're getting close.` :
+      `${money(limit - spent)} left to spend this month.`;
   }
 }
 
@@ -458,22 +404,17 @@ function getGoals() {
 
 function renderGoals() {
   const target = $("goalList");
-
   if (!target) return;
 
   const goals = getGoals();
 
   if (!goals.length) {
-    target.innerHTML =
-      '<p style="font-size:11px;color:var(--muted)">No savings goals yet. Add one to track your progress.</p>';
+    target.innerHTML = '<p style="font-size:11px;color:var(--muted)">No savings goals yet. Add one to track your progress.</p>';
     return;
   }
 
   target.innerHTML = goals.map(g => {
-    const percent = Math.min(
-      100,
-      Number(g.saved) / Number(g.target) * 100
-    );
+    const percent = Math.min(100, Number(g.saved) / Number(g.target) * 100);
 
     return `
       <div class="goal-item">
@@ -481,17 +422,12 @@ function renderGoals() {
           <strong>${safeText(g.name)}</strong>
           <span>${Math.round(percent)}%</span>
         </div>
-        <div class="progress">
-          <div style="width:${percent}%"></div>
-        </div>
+        <div class="progress"><div style="width:${percent}%"></div></div>
         <div class="goal-labels">
           <span>${money(g.saved)} saved · Target ${money(g.target)}</span>
-          <button class="text-link button-link" data-remove-goal="${safeText(g.id)}">
-            Remove
-          </button>
+          <button class="text-link button-link" data-remove-goal="${safeText(g.id)}">Remove</button>
         </div>
-      </div>
-    `;
+      </div>`;
   }).join("");
 }
 
@@ -499,18 +435,17 @@ function initDashboard(items) {
   const income = sum(items, "income");
   const expense = sum(items, "expense");
 
-  $("todayLabel").textContent = new Date().toLocaleDateString("en-IN", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric"
-  });
+  if ($("todayLabel")) {
+    $("todayLabel").textContent = new Date().toLocaleDateString("en-IN", {
+      weekday: "short", day: "numeric", month: "short", year: "numeric"
+    });
+  }
 
-  $("balance").textContent = money(income - expense);
-  $("income").textContent = money(income);
-  $("expenses").textContent = money(expense);
-  $("monthExpense").textContent = money(monthExpenses(items));
-  $("heroBalance").textContent = money(income - expense);
+  if ($("balance")) $("balance").textContent = money(income - expense);
+  if ($("income")) $("income").textContent = money(income);
+  if ($("expenses")) $("expenses").textContent = money(expense);
+  if ($("monthExpense")) $("monthExpense").textContent = money(monthExpenses(items));
+  if ($("heroBalance")) $("heroBalance").textContent = money(income - expense);
 
   barChart("cashflowChart", items);
   donutChart("spendingChart", "spendingLegend", items);
@@ -523,48 +458,38 @@ function initDashboard(items) {
   renderBudget(items);
   renderGoals();
 
-  $("editBudgetBtn").addEventListener("click", () => {
+  $("editBudgetBtn")?.addEventListener("click", () => {
     $("budgetForm").elements.budget.value = preferences().budget;
     $("budgetDialog").showModal();
   });
 
-  $("budgetForm").addEventListener("submit", e => {
+  $("budgetForm")?.addEventListener("submit", e => {
     e.preventDefault();
+    const budget = Number(new FormData(e.currentTarget).get("budget"));
 
-    const budget = Number(
-      new FormData(e.currentTarget).get("budget")
-    );
-
-    if (!Number.isFinite(budget) || budget <= 0) {
-      return toast("Enter a valid budget.");
-    }
+    if (!Number.isFinite(budget) || budget <= 0) return toast("Enter a valid budget.");
 
     savePreferences({ ...preferences(), budget });
-
     $("budgetDialog").close();
-
     renderBudget(getTransactions());
     toast("Monthly budget updated.");
   });
 
-  $("newGoalBtn").addEventListener("click", () => {
+  $("newGoalBtn")?.addEventListener("click", () => {
     $("goalForm").reset();
     $("goalDialog").showModal();
   });
 
-  $("goalForm").addEventListener("submit", e => {
+  $("goalForm")?.addEventListener("submit", e => {
     e.preventDefault();
 
     const form = new FormData(e.currentTarget);
     const target = Number(form.get("target"));
     const saved = Number(form.get("saved"));
 
-    if (target <= 0 || saved < 0) {
-      return toast("Enter valid goal amounts.");
-    }
+    if (target <= 0 || saved < 0) return toast("Enter valid goal amounts.");
 
     const goals = getGoals();
-
     goals.push({
       id: makeId(),
       name: String(form.get("name")).trim(),
@@ -573,23 +498,18 @@ function initDashboard(items) {
     });
 
     localStorage.setItem(GOAL_KEY, JSON.stringify(goals));
-
     $("goalDialog").close();
     renderGoals();
     toast("Savings goal added.");
   });
 
-  $("goalList").addEventListener("click", e => {
+  $("goalList")?.addEventListener("click", e => {
     const btn = e.target.closest("[data-remove-goal]");
-
-    if (!btn) return;
-    if (!confirm("Remove this savings goal?")) return;
+    if (!btn || !confirm("Remove this savings goal?")) return;
 
     localStorage.setItem(
       GOAL_KEY,
-      JSON.stringify(
-        getGoals().filter(g => g.id !== btn.dataset.removeGoal)
-      )
+      JSON.stringify(getGoals().filter(g => g.id !== btn.dataset.removeGoal))
     );
 
     renderGoals();
@@ -599,13 +519,14 @@ function initDashboard(items) {
 
 function downloadCSV(items, filename) {
   const rows = [
-    ["Description", "Amount", "Type", "Category", "Date", "Notes", "Recurring"],
+    ["Description", "Amount", "Type", "Category", "Date", "Payment Method", "Notes", "Recurring"],
     ...items.map(t => [
       t.description,
       t.amount,
       t.type,
       t.category,
       t.date,
+      t.paymentMethod || "Other",
       t.notes || "",
       t.recurring ? "Yes" : "No"
     ])
@@ -613,16 +534,11 @@ function downloadCSV(items, filename) {
 
   const csv = rows.map(row => row.map(value => {
     let s = String(value ?? "");
-
     if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
-
     return `"${s.replace(/"/g, '""')}"`;
   }).join(",")).join("\r\n");
 
-  const blob = new Blob(["\ufeff" + csv], {
-    type: "text/csv;charset=utf-8"
-  });
-
+  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
 
@@ -637,14 +553,14 @@ function initTransactions(items) {
   $("txCount").textContent = items.length;
   $("txIncome").textContent = money(sum(items, "income"));
   $("txExpenses").textContent = money(sum(items, "expense"));
-  $("txBalance").textContent =
-    money(sum(items, "income") - sum(items, "expense"));
+  $("txBalance").textContent = money(sum(items, "income") - sum(items, "expense"));
 
   const dialog = $("transactionDialog");
   const form = $("transactionForm");
   const type = $("formType");
   const category = $("formCategory");
   const date = $("formDate");
+  const paymentField = $("paymentMethod");
 
   date.max = today();
   date.value = today();
@@ -652,13 +568,9 @@ function initTransactions(items) {
   function updateCategories(selected) {
     const options = CATEGORIES[type.value];
 
-    category.innerHTML = options
-      .map(c => `<option>${safeText(c)}</option>`)
-      .join("");
+    category.innerHTML = options.map(c => `<option>${safeText(c)}</option>`).join("");
 
-    if (options.includes(selected)) {
-      category.value = selected;
-    }
+    if (options.includes(selected)) category.value = selected;
   }
 
   type.addEventListener("change", () => updateCategories());
@@ -672,8 +584,7 @@ function initTransactions(items) {
     const to = $("toDate").value;
 
     return getTransactions().filter(t =>
-      `${t.description} ${t.category} ${t.notes || ""}`
-        .toLowerCase().includes(q) &&
+      `${t.description} ${t.category} ${t.notes || ""} ${t.paymentMethod || ""}`.toLowerCase().includes(q) &&
       (ty === "all" || t.type === ty) &&
       (cat === "all" || t.category === cat) &&
       (!from || t.date >= from) &&
@@ -683,15 +594,12 @@ function initTransactions(items) {
 
   function refresh() {
     const found = filtered();
-
     renderRows(found, "transactionRows", true);
-
-    $("resultCount").textContent =
-      `Showing ${found.length} of ${getTransactions().length} transactions`;
+    $("resultCount").textContent = `Showing ${found.length} of ${getTransactions().length} transactions`;
   }
 
   ["searchInput", "typeFilter", "categoryFilter", "fromDate", "toDate"]
-    .forEach(id => $(id).addEventListener("input", refresh));
+    .forEach(id => $(id)?.addEventListener("input", refresh));
 
   $("clearFilters").addEventListener("click", () => {
     $("searchInput").value = "";
@@ -699,30 +607,25 @@ function initTransactions(items) {
     $("categoryFilter").value = "all";
     $("fromDate").value = "";
     $("toDate").value = "";
-
     refresh();
   });
 
   $("addTransactionBtn").addEventListener("click", () => {
     form.reset();
     form.elements.id.value = "";
-
     $("transactionModalTitle").textContent = "Add transaction";
-
     date.value = today();
+    if (paymentField) paymentField.value = "";
     updateCategories();
     dialog.showModal();
   });
 
-  // Delete and edit transactions
   $("transactionRows").addEventListener("click", async e => {
     const del = e.target.closest("[data-delete]");
     const edit = e.target.closest("[data-edit]");
 
     if (del) {
-      if (!confirm("Delete this transaction? This cannot be undone.")) {
-        return;
-      }
+      if (!confirm("Delete this transaction? This cannot be undone.")) return;
 
       try {
         const response = await fetch(
@@ -731,10 +634,7 @@ function initTransactions(items) {
         );
 
         const result = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-          throw new Error(result.error || "Delete failed");
-        }
+        if (!response.ok) throw new Error(result.error || "Delete failed");
 
         toast("Transaction deleted.");
         setTimeout(() => location.reload(), 250);
@@ -747,10 +647,7 @@ function initTransactions(items) {
     }
 
     if (edit) {
-      const t = getTransactions().find(
-        x => x.id === edit.dataset.edit
-      );
-
+      const t = getTransactions().find(x => x.id === edit.dataset.edit);
       if (!t) return;
 
       form.reset();
@@ -764,6 +661,10 @@ function initTransactions(items) {
       form.elements.date.value = t.date;
       form.elements.notes.value = t.notes || "";
 
+      if (paymentField) {
+        paymentField.value = t.paymentMethod || "Other";
+      }
+
       if (form.elements.recurring) {
         form.elements.recurring.checked = !!t.recurring;
       }
@@ -773,7 +674,7 @@ function initTransactions(items) {
     }
   });
 
-  // Add and update transactions through the Java backend
+  // Save the exact selected payment method to the Java backend.
   form.addEventListener("submit", async e => {
     e.preventDefault();
 
@@ -781,6 +682,9 @@ function initTransactions(items) {
     const amount = Number(d.get("amount"));
     const dateValue = String(d.get("date") || "");
     const id = String(d.get("id") || "");
+    const selectedPaymentMethod = String(
+      d.get("payment_method") || paymentField?.value || ""
+    ).trim();
 
     if (!Number.isFinite(amount) || amount <= 0) {
       return toast("Amount must be greater than zero.");
@@ -790,6 +694,10 @@ function initTransactions(items) {
       return toast("Choose a valid date, not a future date.");
     }
 
+    if (!selectedPaymentMethod) {
+      return toast("Please select a payment method.");
+    }
+
     const record = {
       description: String(d.get("description") || "").trim(),
       amount,
@@ -797,16 +705,11 @@ function initTransactions(items) {
       category: String(d.get("category") || "Other"),
       date: dateValue,
       notes: String(d.get("notes") || "").trim(),
-      paymentMethod: "Other"
+      paymentMethod: selectedPaymentMethod
     };
 
-    if (!record.description) {
-      return toast("Enter a description.");
-    }
-
-    if (!record.category) {
-      return toast("Choose a category.");
-    }
+    if (!record.description) return toast("Enter a description.");
+    if (!record.category) return toast("Choose a category.");
 
     try {
       const url = id
@@ -815,9 +718,7 @@ function initTransactions(items) {
 
       const response = await fetch(url, {
         method: id ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(apiTransactionData(record))
       });
 
@@ -828,10 +729,9 @@ function initTransactions(items) {
       }
 
       dialog.close();
-
       toast(id ? "Transaction updated." : "Transaction added.");
-
       setTimeout(() => location.reload(), 350);
+
     } catch (error) {
       console.error("Transaction save error:", error);
       toast(error.message || "Could not connect to the backend.");
@@ -882,10 +782,7 @@ function reportItems(items) {
     to = $("reportTo").value || today();
   }
 
-  return items.filter(t =>
-    (!from || t.date >= from) &&
-    (!to || t.date <= to)
-  );
+  return items.filter(t => (!from || t.date >= from) && (!to || t.date <= to));
 }
 
 function initReports() {
@@ -893,7 +790,6 @@ function initReports() {
 
   function render() {
     const items = reportItems(getTransactions());
-
     const income = sum(items, "income");
     const expense = sum(items, "expense");
     const net = income - expense;
@@ -901,17 +797,12 @@ function initReports() {
     $("reportIncome").textContent = money(income);
     $("reportExpenses").textContent = money(expense);
     $("reportNet").textContent = money(net);
-
-    $("savingsRate").textContent =
-      (income ? Math.round(net / income * 100) : 0) + "%";
+    $("savingsRate").textContent = (income ? Math.round(net / income * 100) : 0) + "%";
 
     barChart("reportCashflow", items);
     donutChart("reportDonut", "reportLegend", items);
 
-    const map = monthData(items);
-
-    const rows = Object.entries(map)
-      .sort((a, b) => b[0].localeCompare(a[0]));
+    const rows = Object.entries(monthData(items)).sort((a, b) => b[0].localeCompare(a[0]));
 
     $("monthlyRows").innerHTML = rows.length
       ? rows.map(([key, v]) => {
@@ -922,23 +813,17 @@ function initReports() {
               <td>${safeText(monthLabel(key))}</td>
               <td class="amount-income">${money(v.income)}</td>
               <td class="amount-expense">${money(v.expense)}</td>
-              <td class="${savings >= 0 ? "amount-income" : "amount-expense"}">
-                ${money(savings)}
-              </td>
+              <td class="${savings >= 0 ? "amount-income" : "amount-expense"}">${money(savings)}</td>
               <td>${v.income ? Math.round(savings / v.income * 100) : 0}%</td>
-            </tr>
-          `;
+            </tr>`;
         }).join("")
       : '<tr><td colspan="5" class="empty">No transactions for this period.</td></tr>';
 
-    $("reportCsv").onclick = () => {
-      downloadCSV(items, "Expense-Report.csv");
-    };
+    $("reportCsv").onclick = () => downloadCSV(items, "Expense-Report.csv");
   }
 
   period.addEventListener("change", () => {
     const custom = period.value === "custom";
-
     $("reportFrom").hidden = !custom;
     $("reportTo").hidden = !custom;
   });
